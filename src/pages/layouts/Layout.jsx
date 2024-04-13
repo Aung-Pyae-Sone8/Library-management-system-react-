@@ -1,17 +1,15 @@
 import { Outlet } from 'react-router-dom'
+import Navbar from '../../components/Navbar'
 
 const Layout = () => {
     return (
         <div>
-            <nav>
-                <ul>
-                    <li>Home</li>
-                    <li>Create</li>
-                </ul>
-            </nav>
+            <Navbar />
 
             {/* dynamic router changes content  */}
-            <Outlet />
+            <div className='max-w-6xl mx-auto p-3'>
+                <Outlet />
+            </div>
         </div>
     )
 }
