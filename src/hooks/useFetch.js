@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-let useFetch = (url, _options) => {
+let useFetch = (url, method = "GET") => {
 
     let [data, setData] = useState(null);
     let [loading, setLoading] = useState(false);
     let [error, setError] = useState(null);
-    let options = useRef(_options);
+    let [postData, setPostData] = useState(null);
 
     useEffect(() => {
 
@@ -14,32 +14,53 @@ let useFetch = (url, _options) => {
         let abortController = new AbortController();
         let signal = abortController.signal;
 
-        setLoading(true);
-        fetch(url, {
-            signal
-        })
-            .then(res => {
-                if(!res.ok) {
-                    setLoading(false);
-                    throw Error('something went wrong!');
-                }
-                return res.json();
-            })
-            .then(data => {
-                setData(data);
-                setLoading(false);
-                setError(null);
-            })
-            .catch(e => {
-                setError(e.message);
-            })
+        let options = {
+            signal,
+            method
+        }
 
-            // cleanup function 
-            return () => {
-                abortController.abort();
+        let fetchData = () => {
+            fetch(url, options)
+                .then(res => {
+                    if (!res.ok) {
+                        setLoading(false);
+                        throw Error('something went wrong!');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    setData(data);
+                    setLoading(false);
+                    setError(null);
+                })
+                .catch(e => {
+                    setError(e.message);
+                })
+        }
+
+        setLoading(true);
+        if (method === "POST" && postData) {
+            options = {
+                ...options,
+                header: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(postData)
             }
-    }, [url, options]);
-    return {data, loading ,error};
+            fetchData();
+        }
+
+        if(method === "GET") {
+            fetchData();
+        }
+
+
+        // cleanup function 
+        return () => {
+            abortController.abort();
+        }
+    }, [url, postData]);
+    return { setPostData, data, loading, error };
 }
 
 export default useFetch;
